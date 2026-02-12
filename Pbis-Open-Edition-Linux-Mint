@@ -1,0 +1,86 @@
+sudo apt update
+sudo apt install netplan.io
+
+sudo mv /etc/netplan/*yaml /etc/netplan/backup-netplan.yaml
+
+sudo systemctl stop NetworkManager
+sudo systemctl disable NetworkManager
+
+sudo systemctl mask NetworkManager
+
+sudo systemctl enable systemd-networkd
+sudo systemctl start systemd-networkd
+
+sudo nano /etc/netplan/01-netcfg.yaml
+                      
+network:
+  version: 2
+#  renderer: NetworkManager
+  ethernets:
+    enp0s3:
+      dhcp4: true
+    enp0s8:
+      dhcp4: no
+      addresses:
+        - 10.10.TuID.105/8
+      nameservers:
+        search: [dominiosorTuID.com]
+        addresses: [10.10.TuID.99, 8.8.8.8]
+
+sudo netplan apply
+
+chmod 0600 /etc/netplan/01-netcfg.yaml
+
+ip a
+ip route show
+resolvectl status
+
+
+sudo apt install openssh-server
+sudo apt install qutebrowser
+sudo apt install libssl-dev libpam0g-dev
+
+
+timdatectl    //Comprobamos la hora de nuestro equipo Linux
+Get-Date      //Comprobamos la hora de nuestro equipo Windows Servidor
+
+
+sudo wget https://github.com/BeyondTrust/pbis-open/releases/download/9.1.0/pbis-open-9.1.0.551.linux.x86_64.deb.sh
+mv pbis-open-9.1.0.551.linux.x86_64.deb.sh ~/Descargas
+sudo chmod +x ~/Descargas/pbis-open-9.1.0.551.linux.x86_64.deb.sh
+cd ~/Descargas
+
+sudo ls /lib32/security , sudo mkdir -p /lib32/security      //comprueba que existe el directorio, si no crealo
+
+sudo ./pbis-open-9.1.0.551.linux.x86_64.deb.sh
+pbis status
+ls -l /opt/pbis/bin/
+
+sudo domainjoin-cli join --disable ssh dominiosorTuID.com administrador@dominiosorTuID.com
+
+pbis status
+/etc/hosts     //Para comprobar que estamos en el domnio
+
+sudo /opt/pbis/bin/config UserDomainPrefix DOMINIOSORTuID
+sudo /opt/pbis/bin/config AssumeDefaultDomain true
+sudo /opt/pbis/bin/config LoginShellTemplate /bin/bash
+sudo /opt/pbis/bin/config HomeDirTemplate %H/%D/%U
+
+getent group admlinux
+getent group DOMINIOSORTuID\\admlinux
+
+sudo visudo       //con el usuario local, no con el administrador del dominio
+
+/etc/sudoers
+%admlinux ALL=(ALL:ALL) ALL     //Añadimos esta linea debajo de la línea %sudo…
+
+sudo systemctl status lightdm.service      //comando para comprobar version de nuestro lightdm
+
+sudo nano /usr/share/lightdm/lightdm.conf.d/99-domain-login.conf
+
+// Añadimos estas lineas dentro del fichero
+[Seat:*]
+greeter-show-manual-login=true
+greeter-hide-users=true
+
+sudo systemctl restart lightdm      //Ya podremos iniciar sesion con el administrador del dominio con interfaz gráfica
